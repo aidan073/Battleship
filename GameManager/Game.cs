@@ -1,15 +1,32 @@
 using System;
+using System.IO;
+using System.Text.Json;
 
+using UserInteraction;
 using models;
 
 namespace GameManager{
+    class Prompts{
+        public string shipPlacement{get; set;}
+    }
     class Game{
 
         public static void Start(){
 
             //add functionality for getting directions and bow location:
-            Direction dir = Direction.North;
-            (int x, int y) bowPos = (0,0);
+            string promptsPath = "prompts/UserPrompts.json";
+            string rawPrompts;
+
+            
+
+            if(File.Exists(promptsPath)){
+                rawPrompts = File.ReadAllText(promptsPath);
+            }
+            else{
+                throw new FileNotFoundException($"File {promptsPath} does not exist");
+            }
+            Prompts prompts = JsonSerializer.Deserialize<Prompts>(rawPrompts);
+
 
             //initialize ships
             var allShipTypes = Enum.GetValues(typeof(ShipType));
@@ -36,7 +53,9 @@ namespace GameManager{
                     default:
                         throw new ArgumentException($"Invalid ShipType {currShipType}.");
                 }
-                ships[idx] = new Ship(currShipType, length, dir, bowPos);
+                string[] prompt = {prompts.shipPlacement};
+                string[] userIn = UserInput.GetUserInput(prompt);
+                ships[idx] = new Ship(currShipType, length, userIn[1], userIn[0]);
                 idx++;
             }
         }

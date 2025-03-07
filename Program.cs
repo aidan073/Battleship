@@ -1,11 +1,11 @@
 ﻿using System;
-using Models;
+
 using UserInteraction;
 using GameManager;
 
 class Program{
     static void Main(String[] args){
-        string[] startPrompt = {"hello"};
+        string[] startPrompt = {"Press the 'enter' key to play, or press 'q' to quit."};
         string[] startChoice;
 
         // ensure valid input
@@ -16,7 +16,6 @@ class Program{
         
         // game loop
         while(startChoice[0] != "q"){        
-
             Game.Start();
             startChoice = UserInput.GetUserInput(startPrompt, getKey: true);
         }
