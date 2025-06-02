@@ -1,23 +1,20 @@
-using System;
-using System.IO;
-using System.Text.Json;
-
 using UserInteraction;
 using models;
 
-namespace GameManager{
-    class Prompts{
-        // For reading in prompts json file
-        public string shipPlacement{get; set;}
-    }
+namespace GameManager
+{
 
-    class ValidateInputs{
+    class ValidateInputs
+    {
         // User console input validation
-        public static bool ValidateInput(int inputNum, string[] input){
-            switch(inputNum){
+        public static bool ValidateInput(int inputNum, string[] input)
+        {
+            switch (inputNum)
+            {
                 case 1:
                     string[] coords = input[0].Split(',');
-                    if(input.Length < 2 || !int.TryParse(coords[0], out int x) || !int.TryParse(coords[1], out int y) || !Enum.TryParse(input[1], out Direction dir)){
+                    if (input.Length < 2 || !int.TryParse(coords[0], out int x) || !int.TryParse(coords[1], out int y) || !Enum.TryParse(input[1], out Direction dir))
+                    {
                         return false;
                     }
                     break;
@@ -29,28 +26,22 @@ namespace GameManager{
             return true;
         }
     }
-    
-    class Game{
-        public static void Start(){
 
-            string promptsPath = "prompts/UserPrompts.json";
-            string rawPrompts;
-
-            if(File.Exists(promptsPath)){
-                rawPrompts = File.ReadAllText(promptsPath);
-            }
-            else{
-                throw new FileNotFoundException($"File {promptsPath} does not exist");
-            }
-            Prompts prompts = JsonSerializer.Deserialize<Prompts>(rawPrompts);
+    class Game
+    {
+        public static void Start()
+        {
 
             //initialize ships
+            var gameControlPrompts = PromptLoader.LoadFromPath(Path.Join("prompts", "GameControlPrompts"));
             var allShipTypes = Enum.GetValues(typeof(ShipType));
             Ship[] ships = new Ship[allShipTypes.Length];
             int idx = 0;
-            foreach(ShipType currShipType in allShipTypes){
+            foreach (ShipType currShipType in allShipTypes)
+            {
                 int length;
-                switch(currShipType){
+                switch (currShipType)
+                {
                     case ShipType.Carrier:
                         length = 5;
                         break;
@@ -69,18 +60,24 @@ namespace GameManager{
                     default:
                         throw new ArgumentException($"Invalid ShipType {currShipType}.");
                 }
-                
+
                 // get user's ship placement
-                string[] prompt = {prompts.shipPlacement};
-                string[] userIn = UserInput.GetUserInput(prompt);
-                while(!ValidateInputs.ValidateInput(1, userIn)){
+                string[] shipPlacementPrompt = { gameControlPrompts["shipPlacement"].ToString() ?? "" };
+                string[] userIn = UserInput.GetUserInput(shipPlacementPrompt);
+                while (!ValidateInputs.ValidateInput(1, userIn))
+                {
                     Console.WriteLine("Invalid input, please try again.");
-                    userIn = UserInput.GetUserInput(prompt);
+                    userIn = UserInput.GetUserInput(shipPlacementPrompt);
                 }
                 string[] coords = userIn[0].Split(',');
                 ships[idx] = new Ship(currShipType, length, (Direction)Enum.Parse(typeof(Direction), userIn[1]), (int.Parse(coords[0]), int.Parse(coords[1])));
                 idx++;
             }
+        }
+        public static void End()
+        {
+            Globals.gameState = GameState.Off;
+            return;
         }
     }
 }

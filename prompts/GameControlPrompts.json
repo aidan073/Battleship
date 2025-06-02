@@ -1,4 +1,3 @@
 {
-    "start": ["Press the 'enter' key to play, or press 'q' to quit."],
     "shipPlacement": ["Enter the coordinates to place the bow of the boat in the format 'x,y':", "Enter the direction you want the boat to face from the following options: 'N, E, S, W':"]
 }
