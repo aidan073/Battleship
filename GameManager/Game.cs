@@ -33,7 +33,7 @@ namespace GameManager
         {
 
             //initialize ships
-            var gameControlPrompts = PromptLoader.LoadFromPath(Path.Join("prompts", "GameControlPrompts"));
+            var gameControlPrompts = PromptLoader.LoadFromPath(Path.Join("prompts", "GameControlPrompts.json"));
             var allShipTypes = Enum.GetValues(typeof(ShipType));
             Ship[] ships = new Ship[allShipTypes.Length];
             int idx = 0;
@@ -62,7 +62,7 @@ namespace GameManager
                 }
 
                 // get user's ship placement
-                string[] shipPlacementPrompt = { gameControlPrompts["shipPlacement"].ToString() ?? "" };
+                string[] shipPlacementPrompt = PromptLoader.KeyToPromptArray("shipPlacement", gameControlPrompts);
                 string[] userIn = UserInput.GetUserInput(shipPlacementPrompt);
                 while (!ValidateInputs.ValidateInput(1, userIn))
                 {

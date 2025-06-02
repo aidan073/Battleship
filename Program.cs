@@ -15,10 +15,11 @@ public static class Globals
 
 class Program
 {
-    static void Main(String[] args)
+    static void Main(string[] args)
     {
+        // Console.WriteLine(Directory.GetCurrentDirectory());
         var gameStatePrompts = PromptLoader.LoadFromPath(Path.Join("prompts", "GameStatePrompts.json"));
-        string[] startPrompt = { gameStatePrompts["start"].GetString() ?? "" };
+        string[] startPrompt = PromptLoader.KeyToPromptArray("start", gameStatePrompts);
         string[] startChoice;
 
         // game loop
@@ -28,9 +29,9 @@ class Program
             {
                 startChoice = UserInput.GetUserInput(startPrompt, getKey: true);
             }
-            while (startChoice[0] != "q" && startChoice[0] != "enter");
+            while (startChoice[0].ToLower() != "q" && startChoice[0].ToLower() != "enter");
             
-            if (startChoice[0] == "q")
+            if (startChoice[0].ToLower() == "q")
             {
                 Game.End();
                 break; //TODO: Remove if end exits program.
