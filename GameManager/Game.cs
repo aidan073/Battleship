@@ -7,21 +7,19 @@ namespace GameManager
     class ValidateInputs
     {
         // User console input validation
-        public static bool ValidateInput(int inputNum, string[] input)
+        public static bool ValidateInput(string promptKey, string[] input)
         {
-            switch (inputNum)
+            switch (promptKey)
             {
-                case 1:
+                case "shipPlacement":
                     string[] coords = input[0].Split(',');
-                    if (input.Length < 2 || !int.TryParse(coords[0], out int x) || !int.TryParse(coords[1], out int y) || !Enum.TryParse(input[1], out Direction dir))
+                    if (input.Length < 2 || !int.TryParse(coords[0], out int x) || !int.TryParse(coords[1], out int y) || !Enum.TryParse(input[1].ToUpper(), out Direction dir))
                     {
                         return false;
                     }
                     break;
-                case 2:
-                    break;
                 default:
-                    throw new ArgumentOutOfRangeException($"Invalid inputNum: {inputNum}.");
+                    throw new ArgumentOutOfRangeException($"Invalid promptKey for validation: {promptKey}.");
             }
             return true;
         }
@@ -31,47 +29,49 @@ namespace GameManager
     {
         public static void Start()
         {
-
-            //initialize ships
             var gameControlPrompts = PromptLoader.LoadFromPath(Path.Join("prompts", "GameControlPrompts.json"));
-            var allShipTypes = Enum.GetValues(typeof(ShipType));
+            ShipType[] allShipTypes = Enum.GetValues<ShipType>();
             Ship[] ships = new Ship[allShipTypes.Length];
-            int idx = 0;
-            foreach (ShipType currShipType in allShipTypes)
+            // Construct ships
+            for (int i = 0; i < allShipTypes.Length; i++)
             {
-                int length;
-                switch (currShipType)
+                switch (allShipTypes[i])
                 {
                     case ShipType.Carrier:
-                        length = 5;
+                        ships[i] = new Ship(ShipType.Carrier, 5);
                         break;
                     case ShipType.Battleship:
-                        length = 4;
+                        ships[i] = new Ship(ShipType.Battleship, 4);
                         break;
                     case ShipType.Cruiser:
-                        length = 3;
+                        ships[i] = new Ship(ShipType.Cruiser, 3);
                         break;
                     case ShipType.Submarine:
-                        length = 3;
+                        ships[i] = new Ship(ShipType.Submarine, 3);
                         break;
                     case ShipType.Destroyer:
-                        length = 2;
+                        ships[i] = new Ship(ShipType.Destroyer, 2);
                         break;
                     default:
-                        throw new ArgumentException($"Invalid ShipType {currShipType}.");
+                        throw new ArgumentException($"Failed to construct ship of type: {allShipTypes[i]}.");
                 }
+            }
 
-                // get user's ship placement
-                string[] shipPlacementPrompt = PromptLoader.KeyToPromptArray("shipPlacement", gameControlPrompts);
+            // get user's ship placement
+            // TODO: Allow user to select ship type
+            // TODO: Validate location of ship placement
+            string[] shipPlacementPrompt = PromptLoader.KeyToPromptArray("shipPlacement", gameControlPrompts);
+            foreach (Ship currShip in ships)
+            {
                 string[] userIn = UserInput.GetUserInput(shipPlacementPrompt);
-                while (!ValidateInputs.ValidateInput(1, userIn))
+                while (!ValidateInputs.ValidateInput("shipPlacement", userIn))
                 {
                     Console.WriteLine("Invalid input, please try again.");
                     userIn = UserInput.GetUserInput(shipPlacementPrompt);
                 }
                 string[] coords = userIn[0].Split(',');
-                ships[idx] = new Ship(currShipType, length, (Direction)Enum.Parse(typeof(Direction), userIn[1]), (int.Parse(coords[0]), int.Parse(coords[1])));
-                idx++;
+                currShip.Dir = (Direction)Enum.Parse(typeof(Direction), userIn[1]);
+                currShip.BowPosition = (int.Parse(coords[0]), int.Parse(coords[1]));
             }
         }
         public static void End()

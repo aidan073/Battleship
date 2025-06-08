@@ -11,19 +11,26 @@ namespace models{
     }
 
     public enum Direction{
-        North,
-        South,
-        East,
-        West
+        N,
+        E,
+        S,
+        W
     }
     
-    public struct Ship{
+    public class Ship{
         public ShipType ShipType;
         public int Length;
         public Direction Dir;
         public (int x, int y) BowPosition;
 
-        public Ship(ShipType shipType, int shipLength, Direction dir, (int x, int y) bowPosition){
+        public Ship(ShipType shipType, int shipLength)
+        {
+            ShipType = shipType;
+            Length = shipLength;
+        }
+
+        public Ship(ShipType shipType, int shipLength, Direction dir, (int x, int y) bowPosition)
+        {
             ShipType = shipType;
             Length = shipLength;
             Dir = dir;
