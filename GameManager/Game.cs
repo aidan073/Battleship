@@ -18,19 +18,15 @@ namespace GameManager
                     {
                         throw new NullReferenceException("kwargs needs to be accessed by 'shipChoice' input validator, but is null");
                     }
-                    Ship[] options = (Ship[]) kwargs["ships"];
-                    if (options == null)
-                    {
-                        throw new NullReferenceException();
-                    }
+                    int totalShips = (int) kwargs["totalShips"];
                     if (!int.TryParse(input[0], out int choice))
                     {
                         Console.WriteLine($"Invalid choice of: \"{input[0]}\", please try again.");
                         return false;
                     }
-                    if (!(choice >= 1 && choice <= options.Length))
+                    if (!(choice >= 1 && choice <= totalShips))
                     {
-                        Console.WriteLine($"Your choice: \"{choice}\" is out of allowed range 1 -> {options.Length}, please try again.");
+                        Console.WriteLine($"Your choice: \"{choice}\" is out of allowed range 1 -> {totalShips}, please try again.");
                         return false;
                     }
                     break;
@@ -52,7 +48,7 @@ namespace GameManager
 
     public static class Printer
     {
-        public static void GiveShipChoices(Ship[] shipArray)
+        public static void GiveShipChoices(IEnumerable<Ship> shipArray)
         {
             Console.WriteLine();
             int idx = 1;
@@ -101,19 +97,22 @@ namespace GameManager
             // TODO: Validate location of ship placement
             string[] shipChoicePrompt = PromptLoader.KeyToPromptArray("shipType", gameControlPrompts);
             string[] shipPlacementPrompt = PromptLoader.KeyToPromptArray("shipPlacement", gameControlPrompts);
-            for(int i = 0; i<ships.Length; i++)
+            List<Ship> shipsToPlace = ships.ToList();
+            for (int i = 0; i < ships.Length; i++)
             {
                 string[] shipChoice;
-                var choiceKwargs = new Dictionary<String, Object> { ["ships"] = ships };
+                var choiceKwargs = new Dictionary<String, Object> { ["totalShips"] = shipsToPlace.Count };
                 //TODO: Refactor getuserinput so giveshipchoices doesn't need to be called before like this
                 do
                 {
-                    Printer.GiveShipChoices(ships);
+                    Printer.GiveShipChoices(shipsToPlace);
                     shipChoice = UserInput.GetUserInput(shipChoicePrompt, getKey: true);
                 }
                 while (!ValidateInputs.ValidateInput("shipChoice", shipChoice, choiceKwargs));
-                var currShip = ships[int.Parse(shipChoice[0])-1];
-                Console.WriteLine($"You chose {currShip.ShipType}");
+                int currShipIdx = int.Parse(shipChoice[0]) - 1;
+                var currShip = shipsToPlace[currShipIdx];
+                shipsToPlace.RemoveAt(currShipIdx);
+                Console.WriteLine($"You chose '{currShip.ShipType}'");
 
                 string[] userIn = UserInput.GetUserInput(shipPlacementPrompt);
                 while (!ValidateInputs.ValidateInput("shipPlacement", userIn))
