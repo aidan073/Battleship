@@ -28,8 +28,9 @@ class ValidateInputs
                 break;
 
             case "shipPlacement":
+                //TODO: Verify that coords are within board space.
                 string[] coords = input[0].Split(',');
-                if (input.Length < 2 || !int.TryParse(coords[0], out int x) || !int.TryParse(coords[1], out int y) || !Enum.TryParse(input[1].ToUpper(), out Direction dir))
+                if (input.Length < 2 || coords.Length < 2 || !int.TryParse(coords[0], out int x) || !int.TryParse(coords[1], out int y) || !Enum.TryParse(input[1].ToUpper(), out Direction dir))
                 {
                     return false;
                 }
