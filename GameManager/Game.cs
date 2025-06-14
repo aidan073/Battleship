@@ -1,16 +1,40 @@
 using UserInteraction;
 using models;
+using System.Numerics;
+using System.Xml.Serialization;
 
 namespace GameManager
 {
-
+    
     class ValidateInputs
     {
         // User console input validation
-        public static bool ValidateInput(string promptKey, string[] input)
+        public static bool ValidateInput(string promptKey, string[] input, Dictionary<string, object>? kwargs = null)
         {
             switch (promptKey)
             {
+                case "shipChoice":
+                    if (kwargs == null)
+                    {
+                        throw new NullReferenceException("kwargs needs to be accessed by 'shipChoice' input validator, but is null");
+                    }
+                    Ship[] options = (Ship[]) kwargs["ships"];
+                    if (options == null)
+                    {
+                        throw new NullReferenceException();
+                    }
+                    if (!int.TryParse(input[0], out int choice))
+                    {
+                        Console.WriteLine($"Invalid choice of: \"{input[0]}\", please try again.");
+                        return false;
+                    }
+                    if (!(choice >= 1 && choice <= options.Length))
+                    {
+                        Console.WriteLine($"Your choice: \"{choice}\" is out of allowed range 1 -> {options.Length}, please try again.");
+                        return false;
+                    }
+                    break;
+
                 case "shipPlacement":
                     string[] coords = input[0].Split(',');
                     if (input.Length < 2 || !int.TryParse(coords[0], out int x) || !int.TryParse(coords[1], out int y) || !Enum.TryParse(input[1].ToUpper(), out Direction dir))
@@ -18,10 +42,25 @@ namespace GameManager
                         return false;
                     }
                     break;
+
                 default:
                     throw new ArgumentOutOfRangeException($"Invalid promptKey for validation: {promptKey}.");
             }
             return true;
+        }
+    }
+
+    public static class Printer
+    {
+        public static void GiveShipChoices(Ship[] shipArray)
+        {
+            Console.WriteLine();
+            int idx = 1;
+            foreach (Ship ship in shipArray)
+            {
+                Console.WriteLine(idx + ". " + ship.ShipType.ToString());
+                idx++;
+            }
         }
     }
 
@@ -60,9 +99,22 @@ namespace GameManager
             // get user's ship placement
             // TODO: Allow user to select ship type
             // TODO: Validate location of ship placement
+            string[] shipChoicePrompt = PromptLoader.KeyToPromptArray("shipType", gameControlPrompts);
             string[] shipPlacementPrompt = PromptLoader.KeyToPromptArray("shipPlacement", gameControlPrompts);
-            foreach (Ship currShip in ships)
+            for(int i = 0; i<ships.Length; i++)
             {
+                string[] shipChoice;
+                var choiceKwargs = new Dictionary<String, Object> { ["ships"] = ships };
+                //TODO: Refactor getuserinput so giveshipchoices doesn't need to be called before like this
+                do
+                {
+                    Printer.GiveShipChoices(ships);
+                    shipChoice = UserInput.GetUserInput(shipChoicePrompt, getKey: true);
+                }
+                while (!ValidateInputs.ValidateInput("shipChoice", shipChoice, choiceKwargs));
+                var currShip = ships[int.Parse(shipChoice[0])-1];
+                Console.WriteLine($"You chose {currShip.ShipType}");
+
                 string[] userIn = UserInput.GetUserInput(shipPlacementPrompt);
                 while (!ValidateInputs.ValidateInput("shipPlacement", userIn))
                 {
